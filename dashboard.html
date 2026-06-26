@@ -1,0 +1,1541 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PRIME AUTH - Dashboard</title>
+    <link rel="icon" type="image/png" href="https://files.catbox.moe/o4gz3k.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --bg: #0b0c0f;
+            --card: #12141e;
+            --border: rgba(255,255,255,0.06);
+            --text: #edf1fb;
+            --muted: #6b7280;
+            --accent: #8871ff;
+            --accent2: #764ba2;
+            --ok: #4ade80;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --radius: 14px;
+        }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+        .app { display:flex; min-height:100vh; }
+        
+        /* SIDEBAR */
+        .sidebar {
+            width: 220px;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 20px 14px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-brand .logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 900;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .sidebar-brand h1 { font-size:18px; font-weight:900; line-height:1.1; }
+        .sidebar-brand h1 span { color:var(--accent); }
+        .sidebar-brand small { color:var(--muted); font-size:8px; text-transform:uppercase; letter-spacing:2px; display:block; }
+        .sidebar-nav { display:flex; flex-direction:column; gap:2px; flex:1; }
+        .sidebar-nav a {
+            display:flex; align-items:center; gap:10px; padding:8px 12px;
+            border-radius:var(--radius); color:var(--muted); text-decoration:none;
+            font-size:13px; font-weight:600; transition:all 0.2s; cursor:pointer;
+        }
+        .sidebar-nav a:hover { background:rgba(255,255,255,0.05); color:var(--text); }
+        .sidebar-nav a.active { background:rgba(102,126,234,0.12); color:var(--accent); }
+        .sidebar-nav a svg { width:18px; height:18px; flex-shrink:0; }
+        .sidebar-divider { border-top:1px solid var(--border); margin:12px 0; }
+        .sidebar-meta { padding:12px 8px; font-size:12px; color:var(--muted); }
+        .sidebar-meta .row { display:flex; justify-content:space-between; padding:4px 0; }
+        .sidebar-meta .row strong { color:var(--text); }
+        .sidebar-meta .badge { font-size:11px; padding:2px 8px; border-radius:12px; }
+        .sidebar-meta .badge.ok { background:rgba(74,222,128,0.12); color:var(--ok); }
+        .sidebar-meta .badge.off { background:rgba(107,114,128,0.12); color:var(--muted); }
+        .sidebar-user {
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar-user img { width:32px; height:32px; border-radius:50%; object-fit:cover; border:2px solid rgba(102,126,234,0.3); }
+        .sidebar-user .name { font-size:13px; font-weight:700; }
+        .sidebar-user .role { font-size:10px; color:var(--muted); }
+        .sidebar-logout {
+            margin-top:10px; padding:6px; border-radius:var(--radius); border:1px solid var(--border);
+            background:transparent; color:var(--muted); font-size:12px; font-weight:600;
+            cursor:pointer; transition:all 0.2s; width:100%; font-family:'Inter',sans-serif;
+        }
+        .sidebar-logout:hover { background:rgba(239,68,68,0.1); color:var(--danger); border-color:rgba(239,68,68,0.2); }
+        
+        /* MAIN */
+        .main { flex:1; padding:20px 28px 40px; overflow-x:hidden; }
+        .header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+        .header h2 { font-size:20px; font-weight:800; }
+        .header .right { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+        .status-pill { padding:4px 14px; border-radius:20px; background:rgba(74,222,128,0.1); color:var(--ok); border:1px solid rgba(74,222,128,0.15); font-size:11px; font-weight:600; }
+        .plan-badge { padding:4px 14px; border-radius:20px; background:rgba(245,158,11,0.1); color:var(--warning); border:1px solid rgba(245,158,11,0.15); font-size:11px; font-weight:600; }
+        .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px; }
+        .stat-card { background:var(--card); padding:16px 20px; border-radius:var(--radius); border:1px solid var(--border); }
+        .stat-card .label { color:var(--muted); font-size:11px; text-transform:uppercase; font-weight:700; letter-spacing:0.5px; }
+        .stat-card .value { font-size:26px; font-weight:900; margin-top:4px; }
+        .section-content { display:none; animation:fadeIn 0.3s ease; }
+        .section-content.active { display:block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+        .command-center {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:20px;
+        }
+        .command-center .left .kicker { color:var(--ok); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+        .command-center .left h2 { font-size:24px; font-weight:800; margin:4px 0 8px; }
+        .command-center .left p { color:var(--muted); font-size:13px; line-height:1.6; }
+        .command-center .left .actions { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+        .command-center .left .actions .btn {
+            padding:6px 16px; border-radius:8px; border:1px solid var(--border);
+            background:transparent; color:var(--text); font-size:12px; font-weight:600;
+            cursor:pointer; transition:all 0.2s; font-family:'Inter',sans-serif;
+        }
+        .command-center .left .actions .btn:hover { background:rgba(255,255,255,0.05); }
+        .command-center .right { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .command-center .right .chip {
+            background:rgba(0,0,0,0.2); padding:12px 14px; border-radius:var(--radius);
+            border:1px solid var(--border);
+        }
+        .command-center .right .chip small { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; }
+        .command-center .right .chip strong { display:block; font-size:14px; margin-top:4px; }
+        .content-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+        .card {
+            background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+            padding:16px 18px;
+        }
+        .card h3 { font-size:15px; font-weight:700; margin-bottom:4px; }
+        .card .desc { color:var(--muted); font-size:12px; margin-bottom:12px; }
+        .activity-item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+        .activity-item:last-child { border-bottom:none; }
+        .activity-item .info strong { display:block; }
+        .activity-item .info span { color:var(--muted); font-size:12px; }
+        .activity-item .time { color:var(--muted); font-size:11px; flex-shrink:0; margin-left:12px; }
+        .featured-app { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+        .featured-app:last-child { border-bottom:none; }
+        .featured-app .info strong { display:block; font-size:14px; }
+        .featured-app .info span { color:var(--muted); font-size:12px; }
+        .featured-app .status { padding:2px 10px; border-radius:12px; font-size:11px; font-weight:600; background:rgba(74,222,128,0.1); color:var(--ok); border:1px solid rgba(74,222,128,0.15); }
+        .empty-state { text-align:center; padding:20px; color:var(--muted); font-size:13px; }
+        .empty-state .emoji { font-size:32px; display:block; margin-bottom:8px; }
+        .table-wrap { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); overflow:hidden; }
+        .table-header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:8px; }
+        .table-header h4 { font-size:14px; font-weight:700; }
+        .table-header .actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        .btn {
+            padding:6px 16px; border-radius:8px; border:none; font-weight:600; font-size:12px;
+            cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.2s;
+        }
+        .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; }
+        .btn-primary:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(102,126,234,0.3); }
+        .btn-secondary { background:rgba(255,255,255,0.05); color:var(--text); border:1px solid var(--border); }
+        .btn-secondary:hover { background:rgba(255,255,255,0.1); }
+        .btn-danger { background:rgba(239,68,68,0.12); color:var(--danger); border:1px solid rgba(239,68,68,0.2); }
+        .btn-danger:hover { background:rgba(239,68,68,0.2); }
+        .btn-small { padding:4px 10px; font-size:11px; }
+        table { width:100%; border-collapse:collapse; font-size:13px; }
+        thead { background:rgba(255,255,255,0.02); }
+        th { text-align:left; padding:8px 12px; color:var(--muted); font-weight:600; font-size:10px; text-transform:uppercase; letter-spacing:0.3px; }
+        td { padding:8px 12px; border-top:1px solid var(--border); }
+        tr:hover td { background:rgba(255,255,255,0.02); }
+        .status-tag { padding:2px 10px; border-radius:12px; font-size:10px; font-weight:600; display:inline-block; }
+        .status-tag.ok { background:rgba(74,222,128,0.1); color:var(--ok); border:1px solid rgba(74,222,128,0.15); }
+        .status-tag.warn { background:rgba(245,158,11,0.1); color:var(--warning); border:1px solid rgba(245,158,11,0.15); }
+        .search {
+            padding:6px 12px; border-radius:8px; border:1px solid var(--border);
+            background:rgba(255,255,255,0.04); color:var(--text); font-size:12px;
+            font-family:'Inter',sans-serif; outline:none; width:160px;
+        }
+        .search:focus { border-color:rgba(102,126,234,0.3); }
+        .search::placeholder { color:var(--muted); }
+        .action-icons { display:flex; gap:4px; align-items:center; flex-wrap:wrap; }
+        .action-icons button { background:transparent; border:none; color:var(--muted); cursor:pointer; padding:3px 5px; border-radius:4px; font-size:13px; transition:all 0.2s; }
+        .action-icons button:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+        .action-icons .delete:hover { background:rgba(239,68,68,0.12); color:var(--danger); }
+        .action-icons .copy:hover { background:rgba(74,222,128,0.12); color:var(--ok); }
+        .modal-backdrop {
+            position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px);
+            display:none; align-items:center; justify-content:center; z-index:100; padding:16px;
+        }
+        .modal-backdrop.open { display:flex; }
+        .modal {
+            background:var(--card); padding:24px; border-radius:16px;
+            width:100%; max-width:480px; border:1px solid var(--border); max-height:90vh; overflow-y:auto;
+        }
+        .modal h3 { font-size:20px; font-weight:800; margin-bottom:4px; }
+        .modal p { color:var(--muted); font-size:13px; margin-bottom:14px; }
+        .modal label { display:block; font-size:12px; font-weight:600; margin-bottom:4px; }
+        .modal input, .modal select {
+            width:100%; padding:8px 12px; border-radius:8px; border:1px solid var(--border);
+            background:rgba(255,255,255,0.04); color:var(--text); font-size:13px;
+            font-family:'Inter',sans-serif; outline:none; margin-bottom:10px;
+        }
+        .modal input:focus, .modal select:focus { border-color:rgba(102,126,234,0.3); }
+        .modal .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .modal .checkbox-group { display:flex; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+        .modal .checkbox-group label { display:flex; align-items:center; gap:4px; font-weight:500; font-size:12px; cursor:pointer; }
+        .modal .checkbox-group input[type="checkbox"] { width:14px; height:14px; margin:0; accent-color:var(--accent); }
+        .modal-actions { display:flex; gap:8px; margin-top:4px; }
+        .modal-actions .btn { flex:1; justify-content:center; }
+        .toast {
+            position:fixed; bottom:20px; right:20px; background:var(--card);
+            border:1px solid var(--border); padding:12px 20px; border-radius:var(--radius);
+            box-shadow:0 20px 60px rgba(0,0,0,0.5); z-index:200; display:none; font-weight:600;
+            animation:slideUp 0.3s ease; min-width:180px; font-size:13px;
+        }
+        .toast.show { display:block; }
+        .toast.success { border-color:rgba(74,222,128,0.3); }
+        .toast.error { border-color:rgba(239,68,68,0.3); }
+        @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        .sidebar-backdrop {
+            position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px);
+            opacity:0; pointer-events:none; transition:opacity .18s ease; z-index:25;
+        }
+        .sidebar-backdrop.open { opacity:1; pointer-events:auto; }
+        .lang-picker { position:relative; }
+        .lang-trigger {
+            display:flex; align-items:center; gap:6px; padding:6px 12px;
+            border-radius:12px; border:1px solid var(--border);
+            background:rgba(255,255,255,0.04); color:var(--text); cursor:pointer;
+            font-size:12px; font-weight:600; font-family:'Inter',sans-serif;
+        }
+        .lang-trigger:hover { background:rgba(255,255,255,0.08); }
+        .lang-menu {
+            position:absolute; right:0; top:calc(100% + 6px);
+            min-width:150px; padding:6px; border-radius:12px;
+            border:1px solid var(--border); background:var(--card); display:none;
+            box-shadow:0 20px 60px rgba(0,0,0,0.3); z-index:50;
+        }
+        .lang-picker.open .lang-menu { display:grid; gap:4px; }
+        .lang-option {
+            padding:6px 12px; border-radius:8px; border:none; background:transparent;
+            color:var(--text); font-size:12px; font-weight:600; cursor:pointer;
+            font-family:'Inter',sans-serif; text-align:left; width:100%;
+        }
+        .lang-option:hover { background:rgba(255,255,255,0.05); }
+        .lang-option.active { background:rgba(102,126,234,0.12); }
+        .profile-menu { position:relative; }
+        .profile-trigger {
+            display:flex; align-items:center; gap:8px; padding:4px 10px 4px 4px;
+            border-radius:12px; border:1px solid var(--border);
+            background:rgba(255,255,255,0.04); color:var(--text); cursor:pointer;
+            font-family:'Inter',sans-serif;
+        }
+        .profile-trigger:hover { background:rgba(255,255,255,0.08); }
+        .profile-avatar { width:30px; height:30px; border-radius:50%; overflow:hidden; flex: none; }
+        .profile-avatar img { width:100%; height:100%; object-fit:cover; }
+        .profile-meta { font-size:12px; font-weight:600; }
+        .profile-meta small { color:var(--muted); font-size:10px; display:block; }
+        .profile-chevron { color:var(--muted); font-size:10px; }
+        .profile-dropdown {
+            position:absolute; right:0; top:calc(100% + 6px);
+            min-width:200px; padding:8px; border-radius:12px;
+            border:1px solid var(--border); background:var(--card); display:none;
+            box-shadow:0 20px 60px rgba(0,0,0,0.3); z-index:50;
+        }
+        .profile-dropdown.open { display:block; }
+        .profile-item {
+            display:flex; align-items:center; gap:10px; padding:6px 12px;
+            border-radius:8px; color:var(--text); text-decoration:none; font-size:12px;
+            font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+            border:none; background:transparent; width:100%; text-align:left;
+        }
+        .profile-item:hover { background:rgba(255,255,255,0.05); }
+        .profile-item.logout { color:var(--danger); }
+        .profile-item.logout:hover { background:rgba(239,68,68,0.1); }
+        .notif-menu { position:relative; }
+        .notif-trigger {
+            display:flex; align-items:center; gap:6px; padding:6px 12px;
+            border-radius:12px; border:1px solid var(--border);
+            background:rgba(255,255,255,0.04); color:var(--text); cursor:pointer;
+            font-size:12px; font-weight:600; font-family:'Inter',sans-serif;
+            position:relative;
+        }
+        .notif-trigger:hover { background:rgba(255,255,255,0.08); }
+        .notif-badge { background:var(--accent); color:#fff; font-size:9px; font-weight:700; padding:1px 6px; border-radius:999px; margin-left:2px; }
+        .notif-dot { width:8px; height:8px; border-radius:50%; background:var(--danger); position:absolute; top:4px; right:4px; }
+        .notif-dropdown {
+            position:absolute; right:0; top:calc(100% + 6px);
+            min-width:300px; max-width:360px; padding:12px; border-radius:12px;
+            border:1px solid var(--border); background:var(--card); display:none;
+            box-shadow:0 20px 60px rgba(0,0,0,0.3); z-index:50;
+            max-height:400px; overflow-y:auto;
+        }
+        .notif-dropdown.open { display:block; }
+        .notif-item { padding:10px 0; border-bottom:1px solid var(--borderSoft); }
+        .notif-item:last-child { border-bottom:none; }
+        .notif-item h4 { font-size:13px; font-weight:700; margin:0; }
+        .notif-item p { font-size:12px; color:var(--muted); margin:4px 0 0; }
+        .notif-item-time { font-size:10px; color:var(--muted); }
+        .notif-item.unread { border-left:3px solid var(--accent); padding-left:10px; }
+        .notif-pill { font-size:9px; font-weight:700; padding:1px 8px; border-radius:999px; text-transform:uppercase; }
+        .notif-pill.success { background:rgba(74,222,128,0.12); color:var(--ok); }
+        .notif-item-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+        .notif-item-foot { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:6px; }
+        .notif-item-meta { font-size:10px; color:var(--muted); }
+        .mini { font-size:10px; padding:2px 10px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text); cursor:pointer; font-weight:600; font-family:'Inter',sans-serif; }
+        .mini.ok { border-color:rgba(74,222,128,0.2); color:var(--ok); }
+        .mini.ok:hover { background:rgba(74,222,128,0.08); }
+        .activity-list { display:grid; gap:4px; }
+        .spotlight-list { display:grid; gap:4px; }
+        .tag { padding:3px 10px; border-radius:999px; border:1px solid var(--borderSoft); background:rgba(255,255,255,0.04); font-size:10px; font-weight:700; display:inline-block; }
+        .tag.ok { border-color:rgba(74,222,128,0.34); background:rgba(74,222,128,0.12); }
+        .toolbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .toolbar .spacer { flex:1; }
+        ::-webkit-scrollbar { width:4px; height:4px; }
+        ::-webkit-scrollbar-track { background:var(--bg); }
+        ::-webkit-scrollbar-thumb { background:var(--accent); border-radius:4px; }
+        @media (max-width: 1024px) {
+            .command-center { grid-template-columns:1fr; }
+            .content-grid { grid-template-columns:1fr; }
+            .stats-grid { grid-template-columns:repeat(2,1fr); }
+        }
+        @media (max-width: 768px) {
+            .app-shell { grid-template-columns:1fr; padding:10px; gap:10px; }
+            .sidebar { position:fixed; left:10px; top:10px; bottom:10px; width:min(calc(100vw - 20px), 320px); background:rgba(18,22,34,.98); transform:translateX(-24px); opacity:0; visibility:hidden; pointer-events:none; transition:all .18s ease; z-index:30; }
+            .sidebar.open { transform:translateX(0); opacity:1; visibility:visible; pointer-events:auto; }
+            .menu-btn { display:inline-flex; align-items:center; justify-content:center; }
+            .topbar { flex-wrap:wrap; }
+            .top-left { width:100%; justify-content:space-between; }
+            .top-right { width:100%; justify-content:flex-start; }
+            .stats-grid { grid-template-columns:1fr; }
+            .command-center .right { grid-template-columns:1fr; }
+            .search { width:100%; }
+            .table-header { flex-direction:column; align-items:stretch; }
+        }
+        .menu-btn {
+            display: none;
+            width: 40px; height: 36px; border-radius:12px; border:1px solid var(--border);
+            background:rgba(255,255,255,0.05); color:var(--text); font-size:18px;
+            cursor:pointer;
+        }
+        .topbar {
+            display:flex; align-items:center; justify-content:space-between; gap:14px; padding:0 6px;
+        }
+        .top-left, .top-right {
+            display:flex; align-items:center; gap:12px;
+        }
+        .top-right { justify-content:flex-end; flex-wrap:wrap; }
+        .crumb-shell {
+            display:flex; align-items:center; flex-wrap:wrap; gap:6px; color:var(--muted);
+            font-size:13px; font-weight:600;
+        }
+        .crumb-shell strong { color:var(--text); font-weight:800; }
+        .control-btn {
+            width:40px; height:40px; flex:none; border-radius:14px; border:1px solid var(--border);
+            background:rgba(255,255,255,0.04); color:var(--text); cursor:pointer;
+            transition:all .18s ease; display:inline-flex; align-items:center; justify-content:center;
+        }
+        .control-btn:hover { border-color:rgba(136,113,255,0.34); background:rgba(136,113,255,0.08); }
+        .control-btn svg { width:18px; height:18px; }
+        .icon-sun { display:none; }
+        body.theme-light .icon-sun { display:block; }
+        body.theme-light .icon-moon { display:none; }
+        body.theme-light {
+            color-scheme: light;
+            --bg: #eef3ff;
+            --text: #121826;
+            --muted: rgba(18,24,38,0.7);
+            --card: rgba(255,255,255,0.96);
+            --border: rgba(17,24,39,0.12);
+            --borderSoft: rgba(17,24,39,0.08);
+        }
+        body.theme-light .sidebar { background:rgba(255,255,255,0.96); }
+        body.theme-light .stat-card { background:rgba(255,255,255,0.96); }
+        body.theme-light .card { background:rgba(255,255,255,0.96); }
+        body.theme-light .table-wrap { background:rgba(255,255,255,0.96); }
+        body.theme-light .command-center { background:rgba(255,255,255,0.96); }
+        body.theme-light .command-center .right .chip { background:rgba(0,0,0,0.04); }
+        body.theme-light .modal { background:rgba(255,255,255,0.98); }
+        body.theme-light .search { background:rgba(255,255,255,0.8); }
+        body.theme-light .profile-trigger { background:rgba(255,255,255,0.8); }
+        body.theme-light .notif-trigger { background:rgba(255,255,255,0.8); }
+        body.theme-light .lang-trigger { background:rgba(255,255,255,0.8); }
+        body.theme-light .control-btn { background:rgba(255,255,255,0.8); }
+        body.theme-light .sidebar-meta .badge.ok { background:rgba(74,222,128,0.12); color:#166534; }
+        body.theme-light .sidebar-meta .badge.off { background:rgba(107,114,128,0.12); color:#475569; }
+        body.theme-light .status-pill { background:rgba(74,222,128,0.08); color:#166534; border-color:rgba(74,222,128,0.15); }
+        body.theme-light .plan-badge { background:rgba(245,158,11,0.08); color:#92400e; border-color:rgba(245,158,11,0.15); }
+        body.theme-light .featured-app .status { background:rgba(74,222,128,0.08); color:#166534; border-color:rgba(74,222,128,0.15); }
+        body.theme-light .tag.ok { border-color:rgba(74,222,128,0.34); background:rgba(74,222,128,0.08); color:#166534; }
+        body.theme-light .status-tag.ok { background:rgba(74,222,128,0.08); color:#166534; border-color:rgba(74,222,128,0.15); }
+        body.theme-light .status-tag.warn { background:rgba(245,158,11,0.08); color:#92400e; border-color:rgba(245,158,11,0.15); }
+        body.theme-light .mini.ok { border-color:rgba(74,222,128,0.2); color:#166534; }
+        body.theme-light .notif-pill.success { background:rgba(74,222,128,0.08); color:#166534; }
+        body.theme-light .notif-item.unread { border-left-color:var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <div class="app">
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="logo">P</div>
+                <div>
+                    <h1>PRIME<span>AUTH</span></h1>
+                    <small>Control Center</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a class="active" data-section="dashboard" onclick="switchSection('dashboard')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    Dashboard
+                </a>
+                <a data-section="apps" onclick="switchSection('apps')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    Manage Apps
+                </a>
+                <a data-section="licenses" onclick="switchSection('licenses')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                    Licenses
+                </a>
+                <a data-section="users" onclick="switchSection('users')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    Users
+                </a>
+                <a data-section="sessions" onclick="switchSection('sessions')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Sessions
+                </a>
+                <a data-section="resources" onclick="switchSection('resources')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Resources
+                </a>
+            </nav>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-meta">
+                <div class="row"><span>Selected app:</span><span><strong id="selectedApp">No apps</strong></span></div>
+                <div class="row"><span>State:</span><span><span class="badge ok" id="appState">Active</span></span></div>
+                <div class="row"><span>Owner:</span><span><strong id="ownerName">Admin</strong></span></div>
+                <div class="row"><span>Discord:</span><span><span class="badge off">Disconnected</span></span></div>
+                <div class="row"><span>Google:</span><span><span class="badge ok">Connected</span></span></div>
+            </div>
+
+            <nav class="sidebar-nav" style="margin-top:4px;">
+                <a data-section="account" onclick="switchSection('account')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Account
+                </a>
+                <a data-section="billing" onclick="switchSection('billing')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    Billing / Upgrade
+                </a>
+            </nav>
+
+            <div class="sidebar-user">
+                <img id="userAvatar" src="https://ui-avatars.com/api/?name=Admin&background=8871ff&color=fff&size=64" alt="Admin" />
+                <div>
+                    <div class="name" id="userName">Admin</div>
+                    <div class="role" id="userRole">Tester</div>
+                </div>
+            </div>
+            <button class="sidebar-logout" onclick="logout()">🚪 Logout</button>
+        </aside>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="main">
+
+            <!-- ===== TOPBAR ===== -->
+            <div class="topbar">
+                <div class="top-left">
+                    <button class="menu-btn" id="menuBtn" type="button">&#9776;</button>
+                    <div class="crumb-shell">
+                        <span>Prime Auth</span>
+                        <span>&#8250;</span>
+                        <strong id="pageTitle">Dashboard</strong>
+                    </div>
+                </div>
+                <div class="top-right">
+                    <div class="lang-picker" data-lang-picker>
+                        <button class="lang-trigger" data-lang-trigger>
+                            🌐 <span data-lang-value>English</span> <span style="font-size:10px;">&#9662;</span>
+                        </button>
+                        <div class="lang-menu" data-lang-menu>
+                            <button class="lang-option active" data-lang="en">English</button>
+                            <button class="lang-option" data-lang="es">Spanish</button>
+                            <button class="lang-option" data-lang="pt">Portuguese</button>
+                        </div>
+                    </div>
+                    <button class="control-btn" data-theme-toggle>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7.2 7.2 0 0 0 21 12.8Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    </button>
+                    <div class="notif-menu">
+                        <button class="notif-trigger" id="notifBtn">
+                            🔔 <span class="notif-badge">4</span>
+                            <span class="notif-dot"></span>
+                        </button>
+                        <div class="notif-dropdown" id="notifDropdown">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                                <b style="font-size:14px;">Notifications</b>
+                                <button class="mini ok" onclick="closeNotif()">Mark all read</button>
+                            </div>
+                            <div class="notif-item unread">
+                                <div class="notif-item-head">
+                                    <span class="notif-pill success">Update</span>
+                                    <span class="notif-item-time">05/05/2026</span>
+                                </div>
+                                <h4>Login Updated</h4>
+                                <p>Security improvements added.</p>
+                            </div>
+                            <div class="notif-item unread">
+                                <div class="notif-item-head">
+                                    <span class="notif-pill success">Update</span>
+                                    <span class="notif-item-time">21/03/2026</span>
+                                </div>
+                                <h4>Prime Auth Update</h4>
+                                <p>Date format updated.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-menu">
+                        <button class="profile-trigger" id="profileBtn">
+                            <span class="profile-avatar"><img id="profileAvatar" src="https://ui-avatars.com/api/?name=Admin&background=8871ff&color=fff&size=64" alt="Admin" /></span>
+                            <span class="profile-meta">
+                                <span id="profileName">Admin</span>
+                                <small id="profileRole">Tester</small>
+                            </span>
+                            <span class="profile-chevron">&#9662;</span>
+                        </button>
+                        <div class="profile-dropdown" id="profileDropdown">
+                            <a class="profile-item" href="#">👤 Account</a>
+                            <a class="profile-item" href="#">🔐 Security</a>
+                            <a class="profile-item" href="#">📋 Logs</a>
+                            <hr style="border-color:var(--border);margin:4px 0;" />
+                            <a class="profile-item" href="#">💳 Billing</a>
+                            <a class="profile-item" href="#">📦 Resources</a>
+                            <hr style="border-color:var(--border);margin:4px 0;" />
+                            <button class="profile-item logout" onclick="logout()">🚪 Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PAGE HERO ===== -->
+            <div style="position:relative;overflow:hidden;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px;border:1px solid var(--border);border-radius:var(--radius);background:linear-gradient(115deg,rgba(136,113,255,0.1),transparent 34%),rgba(0,0,0,0.2);margin-bottom:20px;">
+                <div style="display:grid;gap:4px;max-width:640px;">
+                    <h1 style="font-size:26px;line-height:1;letter-spacing:-.04em;" id="heroTitle">Application Settings</h1>
+                    <p style="color:var(--muted);font-size:13px;" id="heroDesc">Configure each app in a clear, production-ready layout.</p>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;">
+                    <span style="padding:6px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,0.2);font-size:12px;font-weight:700;display:inline-flex;align-items:center;">
+                        <span style="width:6px;height:6px;border-radius:50%;margin-right:8px;background:var(--ok);"></span>
+                        Admin: <span id="adminName">Admin</span>
+                    </span>
+                </div>
+                <div style="position:absolute;right:16px;bottom:10px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;opacity:.5;" aria-hidden="true">primeauth.com</div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- SECTION: DASHBOARD -->
+            <!-- ============================================================ -->
+            <div id="section-dashboard" class="section-content active">
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="label">Total Apps</div><div class="value" id="statApps">0</div></div>
+                    <div class="stat-card"><div class="label">Total Users</div><div class="value" id="statUsers">0</div></div>
+                    <div class="stat-card"><div class="label">Total Licenses</div><div class="value" id="statLicenses">0</div></div>
+                </div>
+
+                <!-- Command Center -->
+                <div class="command-center">
+                    <div class="left">
+                        <div class="kicker">⚡ COMMAND CENTER</div>
+                        <h2>Welcome, <span id="welcomeName">Admin</span></h2>
+                        <p>Your panel is active and ready to operate on Prime Auth official domain.</p>
+                        <div class="actions">
+                            <button class="btn" onclick="switchSection('apps')">📱 Manage Apps</button>
+                            <button class="btn" onclick="switchSection('licenses')">🔑 Licenses</button>
+                            <button class="btn" onclick="switchSection('resources')">📦 Resources</button>
+                        </div>
+                    </div>
+                    <div class="right">
+                        <div class="chip"><small>Selected App</small><strong id="selectedAppChip">No apps</strong></div>
+                        <div class="chip"><small>Current Plan</small><strong id="currentPlanChip">Tester</strong></div>
+                        <div class="chip"><small>Active Sessions</small><strong id="overviewSessions">0</strong></div>
+                        <div class="chip"><small>Status</small><strong><span class="status-tag ok">Active</span></strong></div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity + Featured Apps -->
+                <div class="content-grid">
+                    <div class="card">
+                        <h3>Recent Activity</h3>
+                        <p class="desc">Latest important movements from your panel.</p>
+                        <div class="activity-list" id="activityList">
+                            <div class="empty-state">No recent activity yet.</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Featured Apps</h3>
+                        <p class="desc">Quick view of your main applications.</p>
+                        <div class="spotlight-list" id="spotlightList">
+                            <div class="empty-state">Create an app to get started.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- SECTION: APPS -->
+            <!-- ============================================================ -->
+            <div id="section-apps" class="section-content">
+                <div class="card" style="margin-bottom:12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+                        <div>
+                            <h3>Create New App</h3>
+                            <p style="color:var(--muted);font-size:12px;">Owner ID and Secret are auto-generated. Only name and description required.</p>
+                        </div>
+                        <div class="tag ok">Auto owner ID</div>
+                        <div class="tag ok">Auto secret (64 hex)</div>
+                    </div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+                        <input id="appNameInput" placeholder="Application Name" style="flex:1;min-width:150px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text);font-family:'Inter',sans-serif;outline:none;" />
+                        <input id="appDescInput" placeholder="Description (optional)" style="flex:1;min-width:150px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text);font-family:'Inter',sans-serif;outline:none;" />
+                        <button class="btn btn-primary" onclick="createApp()">+ Create Application</button>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <div class="table-header">
+                        <h4>My Applications <span class="status-tag ok" style="font-size:9px;padding:1px 8px;" id="appCountLabel">0</span></h4>
+                        <div class="actions">
+                            <input class="search" placeholder="Search applications..." id="appSearch" oninput="filterTable('appTable','appSearch')" />
+                        </div>
+                    </div>
+                    <table id="appTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Owner ID</th>
+                                <th>Version</th>
+                                <th>Status</th>
+                                <th>Users</th>
+                                <th>Licenses</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appTableBody">
+                            <!-- Apps rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- SECTION: LICENSES -->
+            <!-- ============================================================ -->
+            <div id="section-licenses" class="section-content">
+                <div class="table-wrap">
+                    <div class="table-header">
+                        <h4>Licenses <span class="status-tag ok" style="font-size:9px;padding:1px 8px;" id="licenseCountLabel">0</span></h4>
+                        <div class="actions">
+                            <input class="search" placeholder="Search licenses..." id="licenseSearch" oninput="filterTable('licenseTable','licenseSearch')" />
+                            <button class="btn btn-primary btn-small" onclick="openModal('licenseModal')">+ Generate</button>
+                        </div>
+                    </div>
+                    <table id="licenseTable">
+                        <thead>
+                            <tr>
+                                <th>Key</th>
+                                <th>Generated By</th>
+                                <th>Duration</th>
+                                <th>Uses</th>
+                                <th>User</th>
+                                <th>HWID</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="licenseTableBody">
+                            <!-- Licenses rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- SECTION: USERS -->
+            <!-- ============================================================ -->
+            <div id="section-users" class="section-content">
+                <div class="table-wrap">
+                    <div class="table-header">
+                        <h4>Users <span class="status-tag ok" style="font-size:9px;padding:1px 8px;" id="userCountLabel">0</span></h4>
+                        <div class="actions">
+                            <input class="search" placeholder="Search users..." id="userSearch" oninput="filterTable('userTable','userSearch')" />
+                            <button class="btn btn-primary btn-small" onclick="openModal('userModal')">+ Create</button>
+                        </div>
+                    </div>
+                    <table id="userTable">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>HWID</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <!-- Users rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- SECTION: SESSIONS -->
+            <!-- ============================================================ -->
+            <div id="section-sessions" class="section-content">
+                <div class="table-wrap">
+                    <div class="table-header">
+                        <h4>Active Sessions <span class="status-tag ok" style="font-size:9px;padding:1px 8px;" id="sessionCountLabel">0</span></h4>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>IP Address</th>
+                                <th>Device</th>
+                                <th>Started</th>
+                                <th>Last Active</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sessionTableBody">
+                            <tr><td colspan="6" class="empty-state">No active sessions.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- SECTION: RESOURCES -->
+            <!-- ============================================================ -->
+            <div id="section-resources" class="section-content">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="card">
+                        <h4 style="font-size:15px;">📦 C++ SDK</h4>
+                        <p style="color:var(--muted);font-size:12px;margin:4px 0 10px;">Complete library for Prime Auth integration.</p>
+                        <button class="btn btn-primary btn-small" onclick="alert('⬇️ Downloading SDK...')">⬇️ Download</button>
+                    </div>
+                    <div class="card">
+                        <h4 style="font-size:15px;">📄 PrimeAuth.h</h4>
+                        <p style="color:var(--muted);font-size:12px;margin:4px 0 10px;">Header file.</p>
+                        <button class="btn btn-primary btn-small" onclick="alert('⬇️ Downloading header...')">⬇️ Download</button>
+                    </div>
+                    <div class="card">
+                        <h4 style="font-size:15px;">💻 main.cpp</h4>
+                        <p style="color:var(--muted);font-size:12px;margin:4px 0 10px;">Example usage.</p>
+                        <button class="btn btn-primary btn-small" onclick="alert('⬇️ Downloading example...')">⬇️ Download</button>
+                    </div>
+                    <div class="card">
+                        <h4 style="font-size:15px;">📱 Android APK</h4>
+                        <p style="color:var(--muted);font-size:12px;margin:4px 0 10px;">Official Android app.</p>
+                        <button class="btn btn-primary btn-small" onclick="alert('⬇️ Downloading APK...')">⬇️ Download</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- SECTION: ACCOUNT -->
+            <!-- ============================================================ -->
+            <div id="section-account" class="section-content">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="card">
+                        <h3>Profile</h3>
+                        <p style="color:var(--muted);font-size:13px;margin-bottom:8px;">Manage your account details</p>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <img id="accountAvatar" src="https://ui-avatars.com/api/?name=Admin&background=8871ff&color=fff&size=64" style="width:56px;height:56px;border-radius:50%;" />
+                            <div>
+                                <strong id="accountName">Admin</strong>
+                                <br />
+                                <span style="color:var(--muted);font-size:13px;" id="accountRole">Tester</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Security</h3>
+                        <p style="color:var(--muted);font-size:13px;margin-bottom:8px;">Change password, 2FA</p>
+                        <button class="btn btn-secondary" onclick="alert('🔐 Change password')">Change Password</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- SECTION: BILLING -->
+            <!-- ============================================================ -->
+            <div id="section-billing" class="section-content">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+                    <div class="card" style="text-align:center;">
+                        <h4 style="font-size:18px;">Tester</h4>
+                        <p style="color:var(--muted);font-size:13px;">Free</p>
+                        <ul style="list-style:none;margin:12px 0;color:var(--muted);font-size:13px;text-align:left;">
+                            <li>✅ 1 Application</li>
+                            <li>✅ 250 Licenses</li>
+                        </ul>
+                        <span class="status-tag ok">Current Plan</span>
+                    </div>
+                    <div class="card" style="text-align:center;border:2px solid rgba(102,126,234,0.3);">
+                        <span style="display:inline-block;background:var(--accent);padding:2px 12px;border-radius:10px;font-size:10px;font-weight:600;color:#fff;margin-top:-24px;margin-bottom:8px;">POPULAR</span>
+                        <h4 style="font-size:18px;">Pro</h4>
+                        <p style="color:var(--muted);font-size:13px;">$19/mo</p>
+                        <ul style="list-style:none;margin:12px 0;color:var(--muted);font-size:13px;text-align:left;">
+                            <li>✅ Unlimited Apps</li>
+                            <li>✅ Unlimited Licenses</li>
+                        </ul>
+                        <button class="btn btn-primary" style="width:100%;" onclick="alert('🚀 Upgrading...')">Upgrade</button>
+                    </div>
+                    <div class="card" style="text-align:center;">
+                        <h4 style="font-size:18px;">Enterprise</h4>
+                        <p style="color:var(--muted);font-size:13px;">Custom</p>
+                        <ul style="list-style:none;margin:12px 0;color:var(--muted);font-size:13px;text-align:left;">
+                            <li>✅ Everything in Pro</li>
+                            <li>✅ Dedicated Server</li>
+                        </ul>
+                        <button class="btn btn-secondary" style="width:100%;" onclick="alert('📞 Contact sales...')">Contact Sales</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ===== MODALS ===== -->
+    <div class="modal-backdrop" id="licenseModal">
+        <div class="modal">
+            <h3>Generate License</h3>
+            <p>Create a new license key.</p>
+            <label>License mask</label>
+            <input type="text" id="licenseMask" value="PRIME-XXXX-XXXX-XXXX" />
+            <label>Expiry (days)</label>
+            <input type="number" id="licenseExpiry" value="365" min="1" max="3650" />
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('licenseModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="generateLicense()">Generate</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="userModal">
+        <div class="modal">
+            <h3>Create User</h3>
+            <p>Add a new user.</p>
+            <label>Username *</label>
+            <input type="text" id="userUsername" placeholder="john_doe" />
+            <label>Email</label>
+            <input type="email" id="userEmail" placeholder="john@email.com" />
+            <label>HWID (optional)</label>
+            <input type="text" id="userHwid" placeholder="HWID-XXXX-YYYY" />
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('userModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="createUser()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================================
+        // COMPLETE WORKING JAVASCRIPT
+        // ============================================================
+
+        // ===== STATE =====
+        let currentUser = null;
+        let apps = [];
+        let licenses = [];
+        let users = [];
+        let sessions = [];
+        let activities = [];
+
+        // ===== INIT =====
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token') || new URLSearchParams(window.location.search).get('token');
+            if (token) {
+                localStorage.setItem('token', token);
+                fetchUser(token);
+            } else {
+                window.location.href = '/login';
+            }
+            setupEventListeners();
+        });
+
+        // ===== FETCH USER =====
+        async function fetchUser(token) {
+            try {
+                const res = await fetch('/api/user', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentUser = data.user;
+                    updateUI();
+                    fetchData();
+                } else {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error fetching user:', error);
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            }
+        }
+
+        // ===== FETCH DATA =====
+        async function fetchData() {
+            try {
+                const token = localStorage.getItem('token');
+                const headers = { 'Authorization': `Bearer ${token}` };
+
+                const [appsRes, licensesRes, usersRes, sessionsRes] = await Promise.all([
+                    fetch('/api/apps', { headers }),
+                    fetch('/api/licenses', { headers }),
+                    fetch('/api/users', { headers }),
+                    fetch('/api/sessions', { headers })
+                ]);
+
+                const appsData = await appsRes.json();
+                const licensesData = await licensesRes.json();
+                const usersData = await usersRes.json();
+                const sessionsData = await sessionsRes.json();
+
+                apps = appsData.apps || [];
+                licenses = licensesData.licenses || [];
+                users = usersData.users || [];
+                sessions = sessionsData.sessions || [];
+
+                renderAll();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        // ===== UPDATE UI =====
+        function updateUI() {
+            if (!currentUser) return;
+            const name = currentUser.username || 'Admin';
+            const avatar = currentUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8871ff&color=fff&size=128`;
+
+            document.getElementById('userName').textContent = name;
+            document.getElementById('userRole').textContent = currentUser.role || 'Tester';
+            document.getElementById('userAvatar').src = avatar;
+            document.getElementById('profileName').textContent = name;
+            document.getElementById('profileRole').textContent = currentUser.role || 'Tester';
+            document.getElementById('profileAvatar').src = avatar;
+            document.getElementById('adminName').textContent = name;
+            document.getElementById('welcomeName').textContent = name;
+            document.getElementById('accountName').textContent = name;
+            document.getElementById('accountRole').textContent = currentUser.role || 'Tester';
+            document.getElementById('accountAvatar').src = avatar;
+            document.getElementById('ownerName').textContent = name;
+            document.getElementById('currentPlanChip').textContent = currentUser.role || 'Tester';
+        }
+
+        // ===== RENDER ALL =====
+        function renderAll() {
+            renderApps();
+            renderLicenses();
+            renderUsers();
+            renderSessions();
+            renderActivity();
+            renderSpotlight();
+            updateStats();
+        }
+
+        // ===== UPDATE STATS =====
+        function updateStats() {
+            document.getElementById('statApps').textContent = apps.length;
+            document.getElementById('statUsers').textContent = users.length;
+            document.getElementById('statLicenses').textContent = licenses.length;
+            document.getElementById('overviewSessions').textContent = sessions.length;
+
+            document.getElementById('appCountLabel').textContent = apps.length;
+            document.getElementById('licenseCountLabel').textContent = licenses.length;
+            document.getElementById('userCountLabel').textContent = users.length;
+            document.getElementById('sessionCountLabel').textContent = sessions.length;
+
+            if (apps.length > 0) {
+                document.getElementById('selectedApp').textContent = apps[0].name;
+                document.getElementById('selectedAppChip').textContent = apps[0].name;
+            } else {
+                document.getElementById('selectedApp').textContent = 'No apps';
+                document.getElementById('selectedAppChip').textContent = 'No apps';
+            }
+        }
+
+        // ===== RENDER APPS =====
+        function renderApps() {
+            const tbody = document.getElementById('appTableBody');
+            if (apps.length === 0) {
+                tbody.innerHTML =
+                    `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted);">No applications available.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = apps.map(app => `
+                <tr data-name="${app.name}">
+                    <td><strong>${app.name}</strong><br/><span style="font-size:11px;color:var(--muted);">${app.description || ''}</span></td>
+                    <td style="font-family:monospace;font-size:12px;">${app.ownerIdKey || app.ownerId || 'N/A'}</td>
+                    <td>${app.version || '1.0'}</td>
+                    <td><span class="status-tag ok">${app.status || 'Active'}</span></td>
+                    <td>${app.users || 0}</td>
+                    <td>${app.licenses || 0}</td>
+                    <td>
+                        <div class="action-icons">
+                            <button class="copy" onclick="copyAppCreds('${app.id}')">📋</button>
+                            <button onclick="editApp('${app.id}')">✏️</button>
+                            <button class="delete" onclick="deleteApp('${app.id}')">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ===== RENDER LICENSES =====
+        function renderLicenses() {
+            const tbody = document.getElementById('licenseTableBody');
+            if (licenses.length === 0) {
+                tbody.innerHTML =
+                    `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted);">No licenses generated.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = licenses.map(lic => `
+                <tr>
+                    <td style="font-family:monospace;font-size:12px;">${lic.key}</td>
+                    <td>${lic.generatedBy || 'Admin'}</td>
+                    <td>${lic.duration || '365 days'}</td>
+                    <td>${lic.uses || '0/1'}</td>
+                    <td>${lic.user || '—'}</td>
+                    <td style="font-family:monospace;font-size:11px;">${lic.hwid || '—'}</td>
+                    <td><span class="status-tag ok">${lic.status || 'Ready'}</span></td>
+                    <td>
+                        <div class="action-icons">
+                            <button class="copy" onclick="copyLicense('${lic.key}')">📋</button>
+                            <button class="delete" onclick="deleteLicense('${lic.id}')">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ===== RENDER USERS =====
+        function renderUsers() {
+            const tbody = document.getElementById('userTableBody');
+            if (users.length === 0) {
+                tbody.innerHTML =
+                    `<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted);">No users.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = users.map(u => `
+                <tr data-name="${u.username}">
+                    <td><strong>${u.username}</strong></td>
+                    <td>${u.email || '—'}</td>
+                    <td style="font-family:monospace;font-size:11px;">${u.hwid || '—'}</td>
+                    <td>${u.role || 'User'}</td>
+                    <td><span class="status-tag ok">Active</span></td>
+                    <td>
+                        <div class="action-icons">
+                            <button onclick="editUser('${u.id}')">✏️</button>
+                            <button class="delete" onclick="deleteUser('${u.id}')">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ===== RENDER SESSIONS =====
+        function renderSessions() {
+            const tbody = document.getElementById('sessionTableBody');
+            if (sessions.length === 0) {
+                tbody.innerHTML =
+                    `<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted);">No active sessions.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = sessions.map(s => `
+                <tr>
+                    <td><strong>${s.username}</strong></td>
+                    <td>${s.ip || '—'}</td>
+                    <td>${s.device || '—'}</td>
+                    <td>${new Date(s.started).toLocaleString()}</td>
+                    <td>${new Date(s.lastActive).toLocaleString()}</td>
+                    <td><button class="btn btn-danger btn-small" onclick="killSession('${s.id}')">🔴 Kill</button></td>
+                </tr>
+            `).join('');
+        }
+
+        // ===== RENDER ACTIVITY =====
+        function renderActivity() {
+            const container = document.getElementById('activityList');
+            if (activities.length === 0) {
+                container.innerHTML = `<div class="empty-state">No recent activity yet.</div>`;
+                return;
+            }
+            container.innerHTML = activities.slice(0, 5).map(a => `
+                <div class="activity-item">
+                    <div class="info">
+                        <strong>${a.action || 'Activity'}</strong>
+                        <span>${a.details || ''}</span>
+                    </div>
+                    <div class="time">${a.time || new Date().toLocaleDateString()}</div>
+                </div>
+            `).join('');
+        }
+
+        // ===== RENDER SPOTLIGHT =====
+        function renderSpotlight() {
+            const container = document.getElementById('spotlightList');
+            if (apps.length === 0) {
+                container.innerHTML = `<div class="empty-state">Create an app to get started.</div>`;
+                return;
+            }
+            container.innerHTML = apps.slice(0, 3).map(app => `
+                <div class="featured-app">
+                    <div class="info">
+                        <strong>${app.name}</strong>
+                        <span>${app.users || 0} Users - ${app.licenses || 0} Licenses</span>
+                    </div>
+                    <span class="status">${app.status || 'Active'}</span>
+                </div>
+            `).join('');
+        }
+
+        // ============================================================
+        // APP FUNCTIONS
+        // ============================================================
+
+        async function createApp() {
+            const name = document.getElementById('appNameInput').value.trim();
+            if (!name) {
+                showToast('❌ Please enter an application name', 'error');
+                return;
+            }
+            const desc = document.getElementById('appDescInput').value.trim();
+
+            try {
+                const res = await fetch('/api/apps', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ name, description: desc })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    apps.push(data.app);
+                    renderAll();
+                    document.getElementById('appNameInput').value = '';
+                    document.getElementById('appDescInput').value = '';
+                    showToast('✅ App "' + name + '" created!', 'success');
+                } else {
+                    showToast('❌ ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('❌ Error creating app', 'error');
+            }
+        }
+
+        async function deleteApp(appId) {
+            if (!confirm('Delete this app permanently?')) return;
+            try {
+                const res = await fetch(`/api/apps/${appId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    apps = apps.filter(a => a.id !== appId);
+                    renderAll();
+                    showToast('✅ App deleted', 'success');
+                }
+            } catch (error) {
+                showToast('❌ Error deleting app', 'error');
+            }
+        }
+
+        function editApp(appId) {
+            const app = apps.find(a => a.id === appId);
+            if (!app) return;
+            const newName = prompt('Enter new app name:', app.name);
+            if (newName && newName.trim()) {
+                app.name = newName.trim();
+                renderAll();
+                showToast('✅ App updated', 'success');
+            }
+        }
+
+        function copyAppCreds(appId) {
+            const app = apps.find(a => a.id === appId);
+            if (!app) return;
+            const text =
+                `App: ${app.name}\nOwner ID: ${app.ownerIdKey || app.ownerId}\nSecret: ${app.appSecret || 'N/A'}\nVersion: ${app.version}`;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('📋 Credentials copied!', 'success');
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+                showToast('📋 Credentials copied!', 'success');
+            });
+        }
+
+        // ============================================================
+        // LICENSE FUNCTIONS
+        // ============================================================
+
+        async function generateLicense() {
+            const mask = document.getElementById('licenseMask').value || 'PRIME-XXXX-XXXX-XXXX';
+            const expiry = parseInt(document.getElementById('licenseExpiry').value) || 365;
+
+            try {
+                const res = await fetch('/api/licenses', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ mask, expiry })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    licenses.push(data.license);
+                    renderAll();
+                    closeModal('licenseModal');
+                    showToast('✅ License "' + data.license.key + '" generated!', 'success');
+                } else {
+                    showToast('❌ ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('❌ Error generating license', 'error');
+            }
+        }
+
+        async function deleteLicense(licId) {
+            if (!confirm('Revoke this license?')) return;
+            try {
+                const res = await fetch(`/api/licenses/${licId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    licenses = licenses.filter(l => l.id !== licId);
+                    renderAll();
+                    showToast('✅ License revoked', 'success');
+                }
+            } catch (error) {
+                showToast('❌ Error revoking license', 'error');
+            }
+        }
+
+        function copyLicense(key) {
+            navigator.clipboard.writeText(key).then(() => {
+                showToast('📋 License copied!', 'success');
+            });
+        }
+
+        // ============================================================
+        // USER FUNCTIONS
+        // ============================================================
+
+        async function createUser() {
+            const username = document.getElementById('userUsername').value.trim();
+            if (!username) {
+                showToast('❌ Username required', 'error');
+                return;
+            }
+            const email = document.getElementById('userEmail').value.trim() || username + '@email.com';
+            const hwid = document.getElementById('userHwid').value.trim() || 'HWID-' + Math.random().toString(36)
+                .substring(2, 6).toUpperCase();
+
+            try {
+                const res = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ username, email, hwid })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    users.push(data.user);
+                    renderAll();
+                    closeModal('userModal');
+                    document.getElementById('userUsername').value = '';
+                    document.getElementById('userEmail').value = '';
+                    document.getElementById('userHwid').value = '';
+                    showToast('✅ User "' + username + '" created!', 'success');
+                } else {
+                    showToast('❌ ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('❌ Error creating user', 'error');
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('Delete this user?')) return;
+            try {
+                const res = await fetch(`/api/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    users = users.filter(u => u.id !== userId);
+                    renderAll();
+                    showToast('✅ User deleted', 'success');
+                }
+            } catch (error) {
+                showToast('❌ Error deleting user', 'error');
+            }
+        }
+
+        function editUser(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            const newName = prompt('Enter new username:', user.username);
+            if (newName && newName.trim()) {
+                user.username = newName.trim();
+                renderAll();
+                showToast('✅ User updated', 'success');
+            }
+        }
+
+        // ============================================================
+        // SESSION FUNCTIONS
+        // ============================================================
+
+        async function killSession(sessionId) {
+            if (!confirm('Kill this session?')) return;
+            try {
+                const res = await fetch(`/api/sessions/${sessionId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    sessions = sessions.filter(s => s.id !== sessionId);
+                    renderAll();
+                    showToast('✅ Session killed', 'success');
+                }
+            } catch (error) {
+                showToast('❌ Error killing session', 'error');
+            }
+        }
+
+        // ============================================================
+        // SECTION SWITCH
+        // ============================================================
+
+        function switchSection(section) {
+            document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById('section-' + section);
+            if (target) target.classList.add('active');
+
+            document.querySelectorAll('.sidebar-nav a').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.sidebar-nav a').forEach(el => {
+                if (el.dataset.section === section) el.classList.add('active');
+            });
+
+            const titles = {
+                dashboard: 'Dashboard',
+                apps: 'Manage Apps',
+                licenses: 'Licenses',
+                users: 'Users',
+                sessions: 'Sessions',
+                resources: 'Resources',
+                account: 'Account',
+                billing: 'Billing / Upgrade'
+            };
+            document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
+            document.getElementById('heroTitle').textContent = titles[section] || 'Dashboard';
+        }
+
+        // ============================================================
+        // FILTER TABLE
+        // ============================================================
+
+        function filterTable(tableId, searchId) {
+            const q = document.getElementById(searchId).value.toLowerCase();
+            const rows = document.querySelectorAll('#' + tableId + ' tbody tr');
+            rows.forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+
+        // ============================================================
+        // MODAL
+        // ============================================================
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+
+        document.querySelectorAll('.modal-backdrop').forEach(el => {
+            el.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('open');
+            });
+        });
+
+        // ============================================================
+        // TOAST
+        // ============================================================
+
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + type;
+            clearTimeout(t._timeout);
+            t._timeout = setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // ============================================================
+        // LOGOUT
+        // ============================================================
+
+        async function logout() {
+            if (!confirm('Logout?')) return;
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            } catch (error) {
+                window.location.href = '/login';
+            }
+        }
+
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+
+        function setupEventListeners() {
+            // Menu button (mobile)
+            document.getElementById('menuBtn').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('open');
+                document.getElementById('sidebarBackdrop').classList.toggle('open');
+            });
+
+            document.getElementById('sidebarBackdrop').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.remove('open');
+                this.classList.remove('open');
+            });
+
+            // Theme toggle
+            document.querySelector('[data-theme-toggle]').addEventListener('click', function() {
+                document.body.classList.toggle('theme-light');
+            });
+
+            // Language picker
+            document.querySelector('[data-lang-trigger]').addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.querySelector('.lang-picker').classList.toggle('open');
+            });
+
+            document.querySelectorAll('.lang-option').forEach(opt => {
+                opt.addEventListener('click', function() {
+                    document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                    document.querySelector('[data-lang-value]').textContent = this.textContent;
+                    document.querySelector('.lang-picker').classList.remove('open');
+                });
+            });
+
+            document.addEventListener('click', function() {
+                document.querySelector('.lang-picker').classList.remove('open');
+            });
+
+            // Notifications
+            document.getElementById('notifBtn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('notifDropdown').classList.toggle('open');
+                document.getElementById('profileDropdown').classList.remove('open');
+            });
+
+            // Profile
+            document.getElementById('profileBtn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('profileDropdown').classList.toggle('open');
+                document.getElementById('notifDropdown').classList.remove('open');
+            });
+
+            document.addEventListener('click', function() {
+                document.getElementById('notifDropdown').classList.remove('open');
+                document.getElementById('profileDropdown').classList.remove('open');
+            });
+
+            // Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal-backdrop.open').forEach(el => el.classList.remove('open'));
+                    document.getElementById('sidebar').classList.remove('open');
+                    document.getElementById('sidebarBackdrop').classList.remove('open');
+                }
+            });
+        }
+
+        console.log('🚀 Prime Auth Dashboard Loaded!');
+        console.log('📱 ' + apps.length + ' applications, ' + licenses.length + ' licenses, ' + users.length + ' users');
+    </script>
+</body>
+</html>
